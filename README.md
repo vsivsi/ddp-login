@@ -11,7 +11,7 @@ ddp-login is built on top of the [ddp](https://www.npmjs.org/package/ddp) npm pa
 # For programmatic use in a node.js program:
 npm install ddp-login
 
-# For use in shell scripts
+# For use in shell scripts (may require sudo)
 npm -g install ddp-login
 ```
 
@@ -45,7 +45,9 @@ login(ddpClient,
     if (error) {
       // Something went wrong...
     } else {
-      // We are now logged in, with token as our session resume authToken...
+      // We are now logged in, with token as our session resume auth token.
+      // Note that this token can't directly enter the parent process
+      // environment, but it can be passed to any spawned child processes.
     }
   }
 );
