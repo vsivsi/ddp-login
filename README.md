@@ -1,7 +1,7 @@
 ddp-login
 ====================================
 
-ddp-login makes it super easy to programmaticly authenticate with [Meteor](https://www.meteor.com/) server using the [DDP protocol](https://github.com/meteor/meteor/blob/master/packages/livedata/DDP.md).
+ddp-login makes it super easy to authenticate with [Meteor](https://www.meteor.com/) server using the [DDP protocol](https://github.com/meteor/meteor/blob/master/packages/livedata/DDP.md).
 
 It is an node.js npm package built on top of the [ddp](https://www.npmjs.org/package/ddp) package.
 
