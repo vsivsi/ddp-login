@@ -1,0 +1,42 @@
+{
+  "name": "ddp-login",
+  "version": "0.0.0",
+  "description": "WIP! Login to a Meteor server via DDP and obtain an authentication token",
+  "main": "lib/index.js",
+  "dependencies": {
+    "ddp": ">=0.5.1",
+    "read": "~1.0.5",
+    "async": "~0.9.0",
+    "yargs": "~1.2.2"
+  },
+  "devDependencies": {
+    "coffee-script": "~1.7.1",
+    "mocha": "~1.20.0"
+    },
+  "scripts": {
+    "prepublish": "coffee --compile --output lib/ src/",
+    "test": "make test"
+  },
+  "bin": {
+    "ddp-login" : "bin/ddp-login"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vsivsi/ddp-login.git"
+  },
+  "keywords": [
+    "ddp",
+    "login",
+    "meteor",
+    "authentication"
+  ],
+  "engine": {
+    "node": ">=0.10.28"
+  },
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/vsivsi/ddp-login/issues"
+  },
+  "author": "Vaughn Iverson",
+  "license": "MIT/X11"
+}
