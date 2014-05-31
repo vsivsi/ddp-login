@@ -40,7 +40,7 @@ login(ddpClient,
                            // authentication will require no user interaction.
      method: 'email'       // Login method: email or username
      retry: 5              // Number of login attempts to make
-	},
+  },
   function (error, token) {
     if (error) {
       // Something went wrong...
