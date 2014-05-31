@@ -9,6 +9,10 @@ DDP = require 'ddp'
 async = require 'async'
 
 login = (ddp, options..., cb) ->
+  unless typeof cb is 'function'
+    throw new Error 'Valid callback must be provided to ddp-login'
+  unless ddp?.loginWithToken?
+    return cb(new Error 'Invalid DDP parameter')
   options = options[0] ? {}
   options.env ?= 'METEOR_TOKEN'
   options.method ?= 'email'
@@ -19,7 +23,7 @@ login = (ddp, options..., cb) ->
     when 'email'
       method = tryOneEmail
     else
-      return cb(new Error "Invalid DDP login method #{options.method}")
+      return cb(new Error "Unsupported DDP login method '#{options.method}'")
 
   if process.env[options.env]?
     # We're already logged-in, maybe...
