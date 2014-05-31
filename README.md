@@ -11,7 +11,7 @@ It is an node.js npm package built on top of the [ddp](https://www.npmjs.org/pac
 # For programmatic use in a node.js program:
 npm install ddp-login
 
-# For use in a shell scripts, to set an environment variable with a valid authentication token:
+# For use in shell scripts
 npm -g install ddp-login
 ```
 
