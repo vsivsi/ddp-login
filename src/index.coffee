@@ -12,6 +12,7 @@ login = (ddp, options..., cb) ->
   options = options[0] ? {}
   options.env ?= 'METEOR_TOKEN'
   options.method ?= 'email'
+  options.retry ?= 5
   switch options.method
     when 'username'
       method = tryOneUser
@@ -26,9 +27,9 @@ login = (ddp, options..., cb) ->
       unless err or not res
         return cb null, res?.token
       else
-        return async.retry async.apply(method, ddp), cb
+        return async.retry options.retry, async.apply(method, ddp), cb
   else
-    return async.retry async.apply(method, ddp), cb
+    return async.retry options.retry, async.apply(method, ddp), cb
 
 tryOneEmail = (ddp, cb) ->
   async.series {
@@ -59,11 +60,11 @@ login._command_line = () ->
   yargs = require('yargs')
     .usage('''
 
-Usage: node ddp-login [--host] [--port] [--env] [--method]
+Usage: node ddp-login [--host <hostname>] [--port <portnum>] [--env <envvar>] [--method <logintype>] [--retry <count>]
 
 Output: a valid authToken, if successful
 
-Example: export METEOR_TOKEN=$($0 --host 127.0.0.1 --port 3000 --env METEOR_TOKEN --method email)
+Example: export METEOR_TOKEN=$($0 --host 127.0.0.1 --port 3000 --env METEOR_TOKEN --method email --retry 5)
 ''')
     .default('host', '127.0.0.1')
     .describe('host', 'The domain name or IP address of the host to connect with')
@@ -73,6 +74,8 @@ Example: export METEOR_TOKEN=$($0 --host 127.0.0.1 --port 3000 --env METEOR_TOKE
     .describe('env', 'The environment variable to check for a valid token')
     .default('method', 'email')
     .describe('method', 'The login method: currently either "email" or "username"')
+    .default('retry', '5')
+    .describe('retry', 'Number of times to retry login before giving up')
     .boolean('h')
     .alias('h','help')
 
@@ -89,7 +92,7 @@ Example: export METEOR_TOKEN=$($0 --host 127.0.0.1 --port 3000 --env METEOR_TOKE
 
   ddp.connect (err) ->
     throw err if err
-    login ddp, { env: argv.env, method: argv.method }, (err, token) ->
+    login ddp, { env: argv.env, method: argv.method, retry: parseInt(argv.retry) }, (err, token) ->
       ddp.close()
       if err
         console.error "Login attempt failed with error:"
