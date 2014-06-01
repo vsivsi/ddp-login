@@ -13,6 +13,9 @@ npm install ddp-login
 
 # For use in shell scripts (may require sudo)
 npm -g install ddp-login
+
+# From within a node_modules/ddp-test directory, unit tests may be run
+npm test
 ```
 
 ## Usage
