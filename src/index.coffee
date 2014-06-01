@@ -64,7 +64,7 @@ login._command_line = () ->
   yargs = require('yargs')
     .usage('''
 
-Usage: node ddp-login [--host <hostname>] [--port <portnum>] [--env <envvar>] [--method <logintype>] [--retry <count>]
+Usage: ddp-login [--host <hostname>] [--port <portnum>] [--env <envvar>] [--method <logintype>] [--retry <count>]
 
 Output: a valid authToken, if successful
 
@@ -83,7 +83,7 @@ Example: export METEOR_TOKEN=$($0 --host 127.0.0.1 --port 3000 --env METEOR_TOKE
     .boolean('h')
     .alias('h','help')
 
-  argv = yargs.argv
+  argv = yargs.parse(process.argv)
 
   if argv.h
     yargs.showHelp()
@@ -102,8 +102,10 @@ Example: export METEOR_TOKEN=$($0 --host 127.0.0.1 --port 3000 --env METEOR_TOKE
         console.error "Login attempt failed with error:"
         console.dir err
         process.exit 1
+        return
       console.log token
       process.exit 0
+      return
 
   # ddp.on 'message', (msg) ->
   #   console.error("ddp message: " + msg)
