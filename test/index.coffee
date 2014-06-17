@@ -99,6 +99,36 @@ describe 'ddp-login', () ->
                process.env.TEST_TOKEN = undefined
                done()
 
+      describe 'login with token only', () ->
+
+         it 'should return a valid authToken when successful', (done) ->
+            process.env.METEOR_TOKEN = goodToken
+            login ddp, { method: 'token' }, (e, token) ->
+               assert.ifError e
+               assert.equal token, goodToken, 'Wrong token returned'
+               done()
+
+         it 'should retry 5 times by default and then fail with bad credentials', (done) ->
+            process.env.METEOR_TOKEN = badToken
+            sinon.spy ddp, 'loginWithToken'
+            login ddp, { method: 'token' }, (e, token) ->
+               assert.throws (() -> throw e), /Bad token/
+               assert.equal ddp.loginWithToken.callCount, 6
+               ddp.loginWithToken.restore()
+               done()
+
+         it 'should retry the specified number of times and then fail with bad credentials', (done) ->
+            pass = badpass
+            sinon.spy ddp, 'loginWithToken'
+            login ddp, {  method: 'token', retry: 3 }, (e, token) ->
+               assert.throws (() -> throw e), /Bad token/
+               assert.equal ddp.loginWithToken.callCount, 4
+               ddp.loginWithToken.restore()
+               done()
+
+         afterEach () ->
+            process.env.METEOR_TOKEN = undefined
+
       describe 'login with email', () ->
 
          it 'should return a valid authToken when successful', (done) ->
@@ -272,6 +302,23 @@ describe 'ddp-login', () ->
          login.__set__ 'process.env.METEOR_TOKEN', goodToken
          login._command_line()
 
+      it 'should succeed when a good token is in the default env var and method is "token"', (done) ->
+         pass = badpass
+         token = null
+         login.__set__ "DDP", DDP
+         login.__set__
+            console:
+               log: (m) ->
+                  token = m
+               warn: console.warn
+         login.__set__ 'process.exit', (n) ->
+            assert.equal n, 0, 'wrong return code'
+            assert.equal token, goodToken, 'Bad token'
+            done()
+         login.__set__ 'process.env.METEOR_TOKEN', goodToken
+         login.__set__ 'process.argv', ['node', 'ddp-login', '--method', 'token']
+         login._command_line()
+
       it 'should succeed when a good token is in a specified env var', (done) ->
          pass = badpass
          token = null
@@ -289,6 +336,23 @@ describe 'ddp-login', () ->
          login.__set__ 'process.argv', ['node', 'ddp-login', '--env', 'TEST_TOKEN']
          login._command_line()
 
+      it 'should succeed when a good token is in a specified env var and method is "token"', (done) ->
+         pass = badpass
+         token = null
+         login.__set__ "DDP", DDP
+         login.__set__
+            console:
+               log: (m) ->
+                  token = m
+               warn: console.warn
+         login.__set__ 'process.exit', (n) ->
+            assert.equal n, 0, 'wrong return code'
+            assert.equal token, goodToken, 'Bad token'
+            done()
+         login.__set__ 'process.env.TEST_TOKEN', goodToken
+         login.__set__ 'process.argv', ['node', 'ddp-login', '--env', 'TEST_TOKEN', '--method', 'token']
+         login._command_line()
+
       it 'should succeed when a bad token is in a specified env var', (done) ->
          pass = goodpass
          token = null
@@ -303,6 +367,38 @@ describe 'ddp-login', () ->
             done()
          login.__set__ 'process.env.TEST_TOKEN', badToken
          login.__set__ 'process.argv', ['node', 'ddp-login', '--env', 'TEST_TOKEN']
+         login._command_line()
+
+      it 'should fail logging in with bad token when method is "token"', (done) ->
+         pass = goodpass
+         login.__set__
+            console:
+               log: (m) ->
+                  token = m
+               error: (m) ->
+               warn: console.warn
+               dir: (o) ->
+         login.__set__ 'process.exit', (n) ->
+            assert.equal n, 1
+            done()
+         login.__set__ 'process.env.METEOR_TOKEN', badToken
+         login.__set__ 'process.argv', ['node', 'ddp-login', '--method', 'token']
+         login._command_line()
+
+      it 'should fail logging in with bad token in specified env var when method is "token"', (done) ->
+         pass = goodpass
+         login.__set__
+            console:
+               log: (m) ->
+                  token = m
+               error: (m) ->
+               warn: console.warn
+               dir: (o) ->
+         login.__set__ 'process.exit', (n) ->
+            assert.equal n, 1
+            done()
+         login.__set__ 'process.env.TEST_TOKEN', badToken
+         login.__set__ 'process.argv', ['node', 'ddp-login', '--env', 'TEST_TOKEN', '--method', 'token']
          login._command_line()
 
       it 'should retry 5 times by default', (done) ->

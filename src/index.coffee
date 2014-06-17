@@ -22,20 +22,26 @@ login = (ddp, options..., cb) ->
       method = tryOneUser
     when 'email'
       method = tryOneEmail
+    when 'token'
+      method = tryOneToken
     else
       return cb(new Error "Unsupported DDP login method '#{options.method}'")
 
   if process.env[options.env]?
     # We're already logged-in, maybe...
-    ddp.loginWithToken process.env[options.env], (err, res) ->
+    tryOneToken ddp, options, (err, res) ->
       unless err or not res
-        return cb null, res?.token
+        return cb null, res
       else
-        return async.retry options.retry, async.apply(method, ddp), cb
+        return async.retry options.retry, async.apply(method, ddp, options), cb
   else
-    return async.retry options.retry, async.apply(method, ddp), cb
+    return async.retry options.retry, async.apply(method, ddp, options), cb
 
-tryOneEmail = (ddp, cb) ->
+tryOneToken = (ddp, options, cb) ->
+  ddp.loginWithToken process.env[options.env], (err, res) ->
+    return cb err, res?.token
+
+tryOneEmail = (ddp, options, cb) ->
   async.series {
       email: async.apply read, {prompt: "Email: ", output: process.stderr}
       pw: async.apply read, {prompt: "Password: ", silent: true, output: process.stderr}
@@ -45,7 +51,7 @@ tryOneEmail = (ddp, cb) ->
       ddp.loginWithEmail res.email[0], res.pw[0], (err, res) ->
         return cb err, res?.token
 
-tryOneUser = (ddp, cb) ->
+tryOneUser = (ddp, options, cb) ->
   async.series {
       user: async.apply read, {prompt: "Username: ", output: process.stderr}
       pw: async.apply read, {prompt: "Password: ", silent: true, output: process.stderr}
@@ -54,7 +60,6 @@ tryOneUser = (ddp, cb) ->
       return cb err if err
       ddp.loginWithUsername res.user[0], res.pw[0], (err, res) ->
         return cb err, res?.token
-
 #
 # When run standalone, the code below will execute
 #
@@ -77,7 +82,7 @@ Example: export METEOR_TOKEN=$($0 --host 127.0.0.1 --port 3000 --env METEOR_TOKE
     .default('env', 'METEOR_TOKEN')
     .describe('env', 'The environment variable to check for a valid token')
     .default('method', 'email')
-    .describe('method', 'The login method: currently either "email" or "username"')
+    .describe('method', 'The login method: currently "email", "username" or "token"')
     .default('retry', '5')
     .describe('retry', 'Number of times to retry login before giving up')
     .boolean('h')

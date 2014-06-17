@@ -20,7 +20,14 @@ npm test
 
 ## Usage
 
-There are two possible ways to use this package.
+ddp-login currently supports three of Meteor's login methods:
+* `'email'` -- email + password
+* `'username'` -- username + password
+* `'token'` -- authentication token from previous successful login
+
+Note that all login methods will try to use an existing authentication token from the environment before falling back to the provided (or default) method. The 'token' method is used when no user intervention is possible and it is assumed that a valid token is present; in this case the login will either succeed or fail, without any user promting.
+
+There are two possible ways to use this package:
 
 ### In node.js
 
@@ -41,7 +48,7 @@ login(ddpClient,
      env: 'METEOR_TOKEN',  // Name of an environment variable to check for a
                            // token. If a token is found and is good,
                            // authentication will require no user interaction.
-     method: 'email'       // Login method: email or username
+     method: 'email'       // Login method: email, username or token
      retry: 5              // Number of login attempts to make
   },
   function (error, token) {
@@ -69,7 +76,8 @@ export METEOR_TOKEN=$(ddp-login --host 127.0.0.1 \
                                 --method email \
                                 --retry 5)
 
-# Get command line help
+## Get command line help
 ddp-login --help
 ```
 The above will only work if `ddp-login` was installed with the `npm -g` option, or if it is run directly using node.js.
+
