@@ -28,9 +28,10 @@ npm test
 
 ## Usage
 
-ddp-login currently supports three of Meteor's login methods:
+ddp-login currently supports the following login methods:
 * `'email'` -- email + password
 * `'username'` -- username + password
+* `'account'` -- email or username + password. This method tries the `'email'` method first when the provided account looks like an email address. If that fails, or if the account doesn't look like an email address, then the `'username'` method is tried
 * `'token'` -- authentication token from previous successful login
 
 Note that all login methods will try to use an existing authentication token from the environment before falling back to the provided (or default) method. The 'token' method is used when no user intervention is possible and it is assumed that a valid token is present; in this case the login will either succeed or fail, without any user promting.
@@ -56,7 +57,9 @@ login(ddpClient,
      env: 'METEOR_TOKEN',  // Name of an environment variable to check for a
                            // token. If a token is found and is good,
                            // authentication will require no user interaction.
-     method: 'email',      // Login method: email, username or token
+     method: 'account',    // Login method: account, email, username or token
+     account: null,        // Prompt for account info by default
+     pass: null,           // Prompt for password by default
      retry: 5,             // Number of login attempts to make
      plaintext: false      // Do not fallback to plaintext password compatibility
   },
@@ -82,7 +85,7 @@ Here's how to securely set an environment variable with an authentication token 
 export METEOR_TOKEN=$(ddp-login --host 127.0.0.1 \
                                 --port 3000 \
                                 --env METEOR_TOKEN \
-                                --method email \
+                                --method account \
                                 --retry 5)
 
 ## Get command line help
@@ -90,3 +93,4 @@ ddp-login --help
 ```
 The above will only work if `ddp-login` was installed with the `npm -g` option, or if it is run directly using node.js.
 
+Note: for security reasons, there is no way to pass the account credentials on the command line, as such credentials would be visible to all users of a machine in the process status.

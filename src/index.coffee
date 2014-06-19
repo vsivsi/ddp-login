@@ -17,14 +17,19 @@ login = (ddp, options..., cb) ->
     return cb(new Error 'Invalid DDP parameter')
   options = options[0] ? {}
   options.env ?= 'METEOR_TOKEN'
-  options.method ?= 'email'
+  options.method ?= 'account'
   options.retry ?= 5
   options.plaintext ?= false
+  options.account ?= null
+  options.pass ?= null
+
   switch options.method
     when 'username'
       method = tryOneUser
     when 'email'
       method = tryOneEmail
+    when 'account'
+      method = tryOneEither
     when 'token'
       method = tryOneToken
     else
@@ -39,6 +44,19 @@ login = (ddp, options..., cb) ->
         return async.retry options.retry, async.apply(method, ddp, options), cb
   else
     return async.retry options.retry, async.apply(method, ddp, options), cb
+
+isEmail = (addr) ->
+  unless typeof addr is 'string'
+    return false
+  matchEmail = ///
+      ^
+      [^@]+
+      @
+      [^@]+\.[^@]+
+      $
+    ///i
+  m = addr.match matchEmail
+  m isnt null
 
 tryOneToken = (ddp, options, cb) ->
   ddp.call 'login', [{ resume: process.env[options.env] }], (err, res) ->
@@ -59,23 +77,40 @@ attemptLogin = (ddp, user, pass, options, cb) ->
       console.error 'Login failed: ', err.message if err
       return cb err, res?.token
 
+userPrompt = (prompt, options, cb) ->
+
+  readPrompts = {}
+  unless options.account?
+    readPrompts.account = async.apply read, {prompt: prompt, output: process.stderr}
+  unless options.pass?
+    readPrompts.pass = async.apply read, {prompt: 'Password: ', silent: true, output: process.stderr}
+
+  async.series readPrompts, (err, res) ->
+    cb err if err
+    result = {}
+    result.account = res.account?[0] or options.account
+    result.pass = res.pass?[0] or options.pass
+    cb null, result
+
 tryOneEmail = (ddp, options, cb) ->
-  async.series {
-      email: async.apply read, {prompt: "Email: ", output: process.stderr}
-      pw: async.apply read, {prompt: "Password: ", silent: true, output: process.stderr}
-    },
-    (err, res) ->
-      return cb err if err
-      attemptLogin ddp, {email: res.email[0]}, res.pw[0], options, cb
+  userPrompt "Email: ", options, (err, res) ->
+    return cb err if err
+    attemptLogin ddp, {email: res.account}, res.pass, options, cb
 
 tryOneUser = (ddp, options, cb) ->
-  async.series {
-      user: async.apply read, {prompt: "Username: ", output: process.stderr}
-      pw: async.apply read, {prompt: "Password: ", silent: true, output: process.stderr}
-    },
-    (err, res) ->
-      return cb err if err
-      attemptLogin ddp, {user: res.user[0]}, res.pw[0], options, cb
+  userPrompt "Username: ", options, (err, res) ->
+    return cb err if err
+    attemptLogin ddp, {user: res.account}, res.pass, options, cb
+
+tryOneEither = (ddp, options, cb) ->
+  userPrompt "Account: ", options, (err, res) ->
+    return cb err if err
+    if isEmail res.account
+      attemptLogin ddp, {email: res.account}, res.pass, options, (err, tok) ->
+        return cb err, tok unless err and err.error is 400
+        attemptLogin ddp, {user: res.account}, res.pass, options, cb
+    else
+      attemptLogin ddp, {user: res.account}, res.pass, options, cb
 
 #
 # When run standalone, the code below will execute
@@ -105,8 +140,8 @@ export METEOR_TOKEN=$($0 --host 127.0.0.1 --port 3000 --env METEOR_TOKEN --metho
     .describe('port', 'The server port number to connect with')
     .default('env', 'METEOR_TOKEN')
     .describe('env', 'The environment variable to check for a valid token')
-    .default('method', 'email')
-    .describe('method', 'The login method: currently "email", "username" or "token"')
+    .default('method', 'account')
+    .describe('method', 'The login method: currently "email", "username", "account" or "token"')
     .default('retry', '5')
     .describe('retry', 'Number of times to retry login before giving up')
     .describe('ssl', 'Use an SSL encrypted connection to connect with the host')
