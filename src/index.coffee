@@ -29,7 +29,7 @@ login = (ddp, options..., cb) ->
     when 'email'
       method = tryOneEmail
     when 'account'
-      method = tryOneEither
+      method = tryOneAccount
     when 'token'
       method = tryOneToken
     else
@@ -45,6 +45,11 @@ login = (ddp, options..., cb) ->
   else
     return async.retry options.retry, async.apply(method, ddp, options), cb
 
+plaintextToDigest = (pass) ->
+  hash = crypto.createHash 'sha256'
+  hash.update pass, 'utf8'
+  return { digest: hash.digest('hex'), algorithm: 'sha-256' }
+
 isEmail = (addr) ->
   unless typeof addr is 'string'
     return false
@@ -58,14 +63,9 @@ isEmail = (addr) ->
   m = addr.match matchEmail
   m isnt null
 
-tryOneToken = (ddp, options, cb) ->
-  ddp.call 'login', [{ resume: process.env[options.env] }], (err, res) ->
-    return cb err, res?.token
 
 attemptLogin = (ddp, user, pass, options, cb) ->
-  hash = crypto.createHash 'sha256'
-  hash.update pass, 'utf8'
-  digest = { digest: hash.digest('hex'), algorithm: 'sha-256' }
+  digest = plaintextToDigest pass
   ddp.call 'login', [{user: user, password: digest}], (err, res) ->
     unless err and err.error is 400 and options.plaintext
       if err
@@ -76,6 +76,27 @@ attemptLogin = (ddp, user, pass, options, cb) ->
     ddp.call 'login', [{user: user, password: pass}], (err, res) ->
       console.error 'Login failed: ', err.message if err
       return cb err, res?.token
+
+loginWithUsername = (ddp, username, password, options..., cb) ->
+   attemptLogin ddp, {user: username}, password, options[0], cb
+
+loginWithEmail = (ddp, email, password, options..., cb) ->
+   attemptLogin ddp, {email: email}, password, options[0], cb
+
+loginWithAccount = (ddp, account, password, options..., cb) ->
+  if isEmail account
+    loginWithEmail ddp, account, password, options[0], (err, tok) ->
+      return cb err, tok unless err and err.error is 400
+      loginWithUsername ddp, {user: account}, password, options[0], cb
+  else
+    loginWithUsername ddp, {user: account}, password, options[0], cb
+
+loginWithToken = (ddp, token, cb) ->
+  ddp.call 'login', [{ resume: token }], cb
+
+tryOneToken = (ddp, options, cb) ->
+  loginWithToken ddp, process.env[options.env], (err, res) ->
+    return cb err, res?.token
 
 userPrompt = (prompt, options, cb) ->
 
@@ -95,22 +116,17 @@ userPrompt = (prompt, options, cb) ->
 tryOneEmail = (ddp, options, cb) ->
   userPrompt "Email: ", options, (err, res) ->
     return cb err if err
-    attemptLogin ddp, {email: res.account}, res.pass, options, cb
+    loginWithEmail ddp, res.account, res.pass, options, cb
 
 tryOneUser = (ddp, options, cb) ->
   userPrompt "Username: ", options, (err, res) ->
     return cb err if err
-    attemptLogin ddp, {user: res.account}, res.pass, options, cb
+    loginWithUsername ddp, res.account, res.pass, options, cb
 
-tryOneEither = (ddp, options, cb) ->
+tryOneAccount = (ddp, options, cb) ->
   userPrompt "Account: ", options, (err, res) ->
     return cb err if err
-    if isEmail res.account
-      attemptLogin ddp, {email: res.account}, res.pass, options, (err, tok) ->
-        return cb err, tok unless err and err.error is 400
-        attemptLogin ddp, {user: res.account}, res.pass, options, cb
-    else
-      attemptLogin ddp, {user: res.account}, res.pass, options, cb
+    loginWithAccount ddp, res.account, res.pass, options, cb
 
 #
 # When run standalone, the code below will execute
@@ -180,5 +196,10 @@ export METEOR_TOKEN=$($0 --host 127.0.0.1 --port 3000 --env METEOR_TOKEN --metho
 
   # ddp.on 'message', (msg) ->
   #   console.error("ddp message: " + msg)
+
+login.loginWithToken = loginWithToken
+login.loginWithUsername = loginWithUsername
+login.loginWithEmail = loginWithEmail
+login.loginWithAccount = loginWithAccount
 
 module?.exports = login
