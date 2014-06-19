@@ -40,7 +40,7 @@ There are two possible ways to use this package:
 
 ### In node.js
 
-If you'd like to log in and obtain an authentication token from a Meteor server within a node.js program:
+If you'd like to log in to a Meteor server from within a node.js program, prompting the user for account credentials:
 
 ```js
 var DDP = require('ddp');
@@ -51,28 +51,69 @@ var ddpClient = new DDP({
   port: 3000
 });
 
-// Options below are the defaults
-login(ddpClient,
-  {
-     env: 'METEOR_TOKEN',  // Name of an environment variable to check for a
-                           // token. If a token is found and is good,
-                           // authentication will require no user interaction.
-     method: 'account',    // Login method: account, email, username or token
-     account: null,        // Prompt for account info by default
-     pass: null,           // Prompt for password by default
-     retry: 5,             // Number of login attempts to make
-     plaintext: false      // Do not fallback to plaintext password compatibility
-  },
-  function (error, token) {
-    if (error) {
-      // Something went wrong...
-    } else {
-      // We are now logged in, with token as our session resume auth token.
-      // Note that this token can't directly enter the parent process
-      // environment, but it can be passed to any spawned child processes.
+ddpClient.connect(function (err) {
+  if (err) throw err;
+
+  login(ddpClient,
+    {  // Options below are the defaults
+       env: 'METEOR_TOKEN',  // Name of an environment variable to check for a
+                             // token. If a token is found and is good,
+                             // authentication will require no user interaction.
+       method: 'account',    // Login method: account, email, username or token
+       account: null,        // Prompt for account info by default
+       pass: null,           // Prompt for password by default
+       retry: 5,             // Number of login attempts to make
+       plaintext: false      // Do not fallback to plaintext password compatibility
+                             // for older non-bcrypt accounts
+    },
+    function (error, userInfo) {
+      if (error) {
+        // Something went wrong...
+      } else {
+        // We are now logged in, with userInfo.token as our session resume auth token.
+        token = userInfo.token;
+      }
     }
-  }
-);
+  );
+});
+
+```
+
+Providing values to the `account` and/or `pass` options will use those values instead of prompting the user.
+
+`ddp-login` also supports the classic login methods from `node-ddp-client`. Note that these will only work for a Meteor v0.8.2 or later server with accounts that use the new bcrypt account scheme. Bcrypt account records are generated automatically for new accounts created on servers v0.8.2 or later, or for older accounts that have been authenticated at least once using the Meteor `accounts-password` client.
+
+```js
+var DDP = require('ddp');
+var login = require('ddp-login');
+
+token = null;
+
+// Assume connected ddpClient, see above...
+
+// Resume login with valid token from previous login
+login.loginWithToken(ddpClient, token, function (err, userInfo) {
+  if (err) throw err;
+  token = userInfo.token;
+});
+
+// Login using a username
+login.loginWithUsername(ddpClient, user, pass, function (err, userInfo) {
+  if (err) throw err;
+  token = userInfo.token;
+});
+
+// Login using an email address
+login.loginWithEmail(ddpClient, email, pass, function (err, userInfo) {
+  if (err) throw err;
+  token = userInfo.token;
+});
+
+// Login using either a username or email address
+login.loginWithAccount(ddpClient, userOrEmail, pass, function (err, userInfo) {
+  if (err) throw err;
+  token = userInfo.token;
+});
 ```
 
 ### From the command shell

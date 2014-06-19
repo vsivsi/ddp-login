@@ -70,12 +70,12 @@ attemptLogin = (ddp, user, pass, options, cb) ->
     unless err and err.error is 400 and options.plaintext
       if err
         console.error 'Login failed:', err.message if err
-      return cb err, res?.token
+      return cb err, res
 
     # Fallback to plaintext login
     ddp.call 'login', [{user: user, password: pass}], (err, res) ->
       console.error 'Login failed: ', err.message if err
-      return cb err, res?.token
+      return cb err, res
 
 loginWithUsername = (ddp, username, password, options..., cb) ->
    attemptLogin ddp, {user: username}, password, options[0], cb
@@ -96,7 +96,7 @@ loginWithToken = (ddp, token, cb) ->
 
 tryOneToken = (ddp, options, cb) ->
   loginWithToken ddp, process.env[options.env], (err, res) ->
-    return cb err, res?.token
+    return cb err, res
 
 userPrompt = (prompt, options, cb) ->
 
@@ -183,14 +183,14 @@ export METEOR_TOKEN=$($0 --host 127.0.0.1 --port 3000 --env METEOR_TOKEN --metho
 
   ddp.connect (err) ->
     throw err if err
-    login ddp, { env: argv.env, method: argv.method, retry: argv.retry, plaintext: argv.plaintext }, (err, token) ->
+    login ddp, { env: argv.env, method: argv.method, retry: argv.retry, plaintext: argv.plaintext }, (err, res) ->
       ddp.close()
       if err
         console.error "Login attempt failed with error:"
         console.dir err
         process.exit 1
         return
-      console.log token
+      console.log res.token
       process.exit 0
       return
 

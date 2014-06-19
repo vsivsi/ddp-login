@@ -154,17 +154,17 @@ describe 'ddp-login', () ->
 
          it 'should return an existing valid authToken in the default environment variable', (done) ->
             process.env.METEOR_TOKEN = goodToken
-            login ddp, (e, token) ->
+            login ddp, (e, res) ->
                assert.ifError e
-               assert.equal token, goodToken, 'Wrong token returned'
+               assert.equal res.token, goodToken, 'Wrong token returned'
                process.env.METEOR_TOKEN = undefined
                done()
 
          it 'should return an existing valid authToken in a specified environment variable', (done) ->
             process.env.TEST_TOKEN = goodToken
-            login ddp, { env: 'TEST_TOKEN' }, (e, token) ->
+            login ddp, { env: 'TEST_TOKEN' }, (e, res) ->
                assert.ifError e
-               assert.equal token, goodToken, 'Wrong token returned'
+               assert.equal res.token, goodToken, 'Wrong token returned'
                process.env.TEST_TOKEN = undefined
                done()
 
@@ -172,15 +172,15 @@ describe 'ddp-login', () ->
 
          it 'should return a valid authToken when successful', (done) ->
             process.env.METEOR_TOKEN = goodToken
-            login ddp, { method: 'token' }, (e, token) ->
+            login ddp, { method: 'token' }, (e, res) ->
                assert.ifError e
-               assert.equal token, goodToken, 'Wrong token returned'
+               assert.equal res.token, goodToken, 'Wrong token returned'
                done()
 
          it 'should retry 5 times by default and then fail with bad credentials', (done) ->
             process.env.METEOR_TOKEN = badToken
             sinon.spy ddp, 'call'
-            login ddp, { method: 'token' }, (e, token) ->
+            login ddp, { method: 'token' }, (e, res) ->
                assert.equal e, loggedOutError
                assert.equal ddp.call.callCount, 6
                ddp.call.restore()
@@ -189,7 +189,7 @@ describe 'ddp-login', () ->
          it 'should retry the specified number of times and then fail with bad credentials', (done) ->
             process.env.METEOR_TOKEN = badToken
             sinon.spy ddp, 'call'
-            login ddp, {  method: 'token', retry: 3 }, (e, token) ->
+            login ddp, { method: 'token', retry: 3 }, (e, res) ->
                assert.equal e, loggedOutError
                assert.equal ddp.call.callCount, 4
                ddp.call.restore()
@@ -203,29 +203,29 @@ describe 'ddp-login', () ->
          it 'should return a valid authToken when successful', (done) ->
             pass = goodpass
             account = email
-            login ddp, (e, token) ->
+            login ddp, (e, res) ->
                assert.ifError e
-               assert.equal token, goodToken, 'Wrong token returned'
+               assert.equal res.token, goodToken, 'Wrong token returned'
                done()
 
          it 'should also work when method is set to email', (done) ->
             pass = goodpass
-            login ddp, { method: 'email' }, (e, token) ->
+            login ddp, { method: 'email' }, (e, res) ->
                assert.ifError e
-               assert.equal token, goodToken, 'Wrong token returned'
+               assert.equal res.token, goodToken, 'Wrong token returned'
                done()
 
          it 'should work when account and pass are provided as options', (done) ->
-            login ddp, { account: email, pass: goodpass }, (e, token) ->
+            login ddp, { account: email, pass: goodpass }, (e, res) ->
                assert.ifError e
-               assert.equal token, goodToken, 'Wrong token returned'
+               assert.equal res.token, goodToken, 'Wrong token returned'
                done()
 
          it 'should retry 5 times by default and then fail with bad credentials', (done) ->
             pass = badpass
             account = email
             sinon.spy ddp, 'call'
-            login ddp, (e, token) ->
+            login ddp, (e, res) ->
                assert.equal e, matchFailedError
                assert.equal ddp.call.callCount, 11
                ddp.call.restore()
@@ -234,16 +234,16 @@ describe 'ddp-login', () ->
          it 'should successfully authenticate with plaintext credentials', (done) ->
             pass = okpass
             account = email
-            login ddp, { plaintext: true }, (e, token) ->
+            login ddp, { plaintext: true }, (e, res) ->
                assert.ifError e
-               assert.equal token, goodToken, 'Wrong token returned'
+               assert.equal res.token, goodToken, 'Wrong token returned'
                done()
 
          it 'should retry the specified number of times and then fail with bad credentials', (done) ->
             pass = badpass
             account = email
             sinon.spy ddp, 'call'
-            login ddp, { retry: 3 }, (e, token) ->
+            login ddp, { retry: 3 }, (e, res) ->
                assert.equal e, matchFailedError
                assert.equal ddp.call.callCount, 7
                ddp.call.restore()
@@ -258,29 +258,29 @@ describe 'ddp-login', () ->
          it 'should return a valid authToken when successful', (done) ->
             pass = goodpass
             account = user
-            login ddp, (e, token) ->
+            login ddp, (e, res) ->
                assert.ifError e
-               assert.equal token, goodToken, 'Wrong token returned'
+               assert.equal res.token, goodToken, 'Wrong token returned'
                done()
 
          it 'should also work when method is set to username', (done) ->
             pass = goodpass
-            login ddp, { method: 'username' }, (e, token) ->
+            login ddp, { method: 'username' }, (e, res) ->
                assert.ifError e
-               assert.equal token, goodToken, 'Wrong token returned'
+               assert.equal res.token, goodToken, 'Wrong token returned'
                done()
 
          it 'should work when account and pass are provided as options', (done) ->
-            login ddp, { account: user, pass: goodpass }, (e, token) ->
+            login ddp, { account: user, pass: goodpass }, (e, res) ->
                assert.ifError e
-               assert.equal token, goodToken, 'Wrong token returned'
+               assert.equal res.token, goodToken, 'Wrong token returned'
                done()
 
          it 'should retry 5 times by default and then fail with bad credentials', (done) ->
             pass = badpass
             account = user
             sinon.spy ddp, 'call'
-            login ddp, (e, token) ->
+            login ddp, (e, res) ->
                assert.equal e, matchFailedError
                assert.equal ddp.call.callCount, 6
                ddp.call.restore()
@@ -290,7 +290,7 @@ describe 'ddp-login', () ->
             pass = badpass
             account = user
             sinon.spy ddp, 'call'
-            login ddp, { retry: 3 }, (e, token) ->
+            login ddp, { retry: 3 }, (e, res) ->
                assert.equal e, matchFailedError
                assert.equal ddp.call.callCount, 4
                ddp.call.restore()
