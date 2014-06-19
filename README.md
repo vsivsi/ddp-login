@@ -5,6 +5,14 @@ ddp-login is a node.js npm package providing a simple way to authenticate with a
 
 ddp-login is built on top of the [ddp](https://www.npmjs.org/package/ddp) npm package and makes it easy to prompt a user for login credentials (based on e-mail or username), authenticate a DDP connection and then securely cache the resulting authentication token in the process environment. If a valid token is already present in the environment, then there is no need to prompt the user and reauthentication occurs transparently.
 
+**NOTE:** As of Meteor v0.8.2, the Meteor account database and authentication methods have changed significantly. You can read more about the changes [here](https://github.com/meteor/meteor/blob/release-0.8.2/History.md#meteor-accounts). These changes have brought some potential compatibility issues:
+* As of ddp-login 1.0.0, authenticating with a Meteor server older than v0.8.2 requires the `plaintext` option.
+* For servers v0.8.2 or newer, accounts created on older versions of Meteor need to be authenticated at least once using a Meteor client to transition the account to the new format
+     * Until this is done, logging into these legacy accounts on a newer server using ddp-login will require the use of the `plaintext` option.
+* For as long as you are only using pre-v0.8.2 servers, you may want to continue to use ddp-login v0.1.1, which will continue to fully support the old account types and SRP based login protocol.
+
+The `plaintext` fallback is insecure on the wire (when not using SSL encryption), which is why it is not on by default. The new default remote login scheme for Meteor transmits the SHA256 digest of the password, which is more secure for strong passwords, but it still vulnerable to replay attacks. For these reasons, it is strongly advised that you use SSL encrypted DDP connections for all authentication requests that traverse untrusted networks.
+
 ## Installation
 
 ```bash
@@ -48,8 +56,9 @@ login(ddpClient,
      env: 'METEOR_TOKEN',  // Name of an environment variable to check for a
                            // token. If a token is found and is good,
                            // authentication will require no user interaction.
-     method: 'email'       // Login method: email, username or token
-     retry: 5              // Number of login attempts to make
+     method: 'email',      // Login method: email, username or token
+     retry: 5,             // Number of login attempts to make
+     plaintext: false      // Do not fallback to plaintext password compatibility
   },
   function (error, token) {
     if (error) {

@@ -3,7 +3,6 @@
 assert = require 'assert'
 rewire = require 'rewire'
 sinon = require 'sinon'
-# ddp = require 'ddp'
 
 login = null
 
@@ -31,26 +30,47 @@ class DDP
    close: (cb) ->
       # console.log "DDP Closing..."
 
-   loginWithToken: (token, cb) ->
-      process.nextTick () ->
-         if token is goodToken
-            return cb null, { token: goodToken }
-         else
-            return cb(new Error "Bad token")
+   call: (method, params, cb) ->
 
-   loginWithEmail: (em, pw, cb) ->
       process.nextTick () ->
-         if em is 'bozo@clowns.com' and pw is 'secure'
-            return cb null, { token: goodToken }
-         else
-            return cb(new Error "Bad email credentials")
 
-   loginWithUsername: (un, pw, cb) ->
-      process.nextTick () ->
-         if un is 'bozo' and pw is 'secure'
-            return cb null, { token: goodToken }
+         unless method is 'login'
+            return cb methodNotFoundError
+
+         obj = params[0]
+
+         if obj.resume? # Token based auth
+
+            if obj.resume is goodToken
+               return cb null, { token: goodToken }
+            else
+               return cb loggedOutError
+
+         else if obj.user? and obj.password? # password
+
+            if obj.password.digest?
+               unless obj.password.algorithm is 'sha-256'
+                  return cb unrecognizedOptionsError
+            else unless typeof obj.password is 'string'
+               return cb unrecognizedOptionsError
+
+            if obj.user.user? # username based
+               if obj.user.user is user and
+                     obj.password is okpass or obj.password.digest is goodDigest
+                  return cb null, { token: goodToken }
+               else
+                  return cb matchFailedError
+
+            else if obj.user.email # email based
+               if obj.user.email is email and
+                     obj.password is okpass or obj.password.digest is goodDigest
+                  return cb null, { token: goodToken }
+               else
+                  return cb matchFailedError
+            else
+               return cb unrecognizedOptionsError
          else
-            return cb(new Error "Bad username credentials")
+            return cb unrecognizedOptionsError
 
 login.__set__ 'read', read
 login.__set__ 'DDP', DDP
@@ -58,9 +78,42 @@ login.__set__ 'DDP', DDP
 goodToken = 'Ge1KTcEL8MbPc7hq_M5OkOwKHtNzbCdiDqaEoUNux22'
 badToken =  'slkf90sfj3fls9j930fjfssjf9jf3fjs_fssh82344f'
 
+matchFailedError =
+   "error":400
+   "reason":"Match failed"
+   "message":"Match failed [400]"
+   "errorType":"Meteor.Error"
+
+loggedOutError =
+   "error":403
+   "reason":"You've been logged out by the server. Please log in again."
+   "message":"You've been logged out by the server. Please log in again. [403]"
+   "errorType":"Meteor.Error"
+
+methodNotFoundError =
+   "error":404
+   "reason":"Method not found"
+   "message":"Method not found [404]"
+   "errorType":"Meteor.Error"
+
+unrecognizedOptionsError =
+   "error":400
+   "reason":"Unrecognized options for login request"
+   "message":"Unrecognized options for login request [400]"
+   "errorType":"Meteor.Error"
+
+oldPasswordFormatError =
+   "error":400
+   "reason":"old password format"
+   "details":"{\"format\":\"srp\",\"identity\":\"h_UZJgkIqF-NYPR-NSJzHvZWH9MuHb689eLzy741nXq\"}"
+   "message":"old password format [400]"
+   "errorType":"Meteor.Error"
+
 user = 'bozo'
 email = 'bozo@clowns.com'
 goodpass = 'secure'
+goodDigest = '6a934b45144e3758911efa29ed68fb2d420fa7bd568739cdcda9251fa9609b1e'
+okpass = 'justok'
 badpass = 'insecure'
 pass = null
 
@@ -70,6 +123,11 @@ describe 'ddp-login', () ->
 
    describe 'API', () ->
 
+      before () ->
+         login.__set__
+            console:
+               error: (m) ->
+
       it 'should throw when invoked without a valid callback', () ->
          assert.throws login, /Valid callback must be provided to ddp-login/
 
@@ -78,7 +136,7 @@ describe 'ddp-login', () ->
             assert.throws (() -> throw e), /Invalid DDP parameter/
 
       it 'should reject unsupported login methods', () ->
-         login { loginWithToken: () -> }, { method: 'bogus' }, (e) ->
+         login { call: (->), connect: (->), close: (->)}, { method: 'bogus' }, (e) ->
             assert.throws (() -> throw e), /Unsupported DDP login method/
 
       describe 'authToken handling', () ->
@@ -110,20 +168,20 @@ describe 'ddp-login', () ->
 
          it 'should retry 5 times by default and then fail with bad credentials', (done) ->
             process.env.METEOR_TOKEN = badToken
-            sinon.spy ddp, 'loginWithToken'
+            sinon.spy ddp, 'call'
             login ddp, { method: 'token' }, (e, token) ->
-               assert.throws (() -> throw e), /Bad token/
-               assert.equal ddp.loginWithToken.callCount, 6
-               ddp.loginWithToken.restore()
+               assert.equal e, loggedOutError
+               assert.equal ddp.call.callCount, 6
+               ddp.call.restore()
                done()
 
          it 'should retry the specified number of times and then fail with bad credentials', (done) ->
-            pass = badpass
-            sinon.spy ddp, 'loginWithToken'
+            process.env.METEOR_TOKEN = badToken
+            sinon.spy ddp, 'call'
             login ddp, {  method: 'token', retry: 3 }, (e, token) ->
-               assert.throws (() -> throw e), /Bad token/
-               assert.equal ddp.loginWithToken.callCount, 4
-               ddp.loginWithToken.restore()
+               assert.equal e, loggedOutError
+               assert.equal ddp.call.callCount, 4
+               ddp.call.restore()
                done()
 
          afterEach () ->
@@ -147,20 +205,27 @@ describe 'ddp-login', () ->
 
          it 'should retry 5 times by default and then fail with bad credentials', (done) ->
             pass = badpass
-            sinon.spy ddp, 'loginWithEmail'
+            sinon.spy ddp, 'call'
             login ddp, (e, token) ->
-               assert.throws (() -> throw e), /Bad email credentials/
-               assert.equal ddp.loginWithEmail.callCount, 5
-               ddp.loginWithEmail.restore()
+               assert.equal e, matchFailedError
+               assert.equal ddp.call.callCount, 6
+               ddp.call.restore()
+               done()
+
+         it 'should successfully authenticate with plaintext credentials', (done) ->
+            pass = okpass
+            login ddp, { plaintext: true }, (e, token) ->
+               assert.ifError e
+               assert.equal token, goodToken, 'Wrong token returned'
                done()
 
          it 'should retry the specified number of times and then fail with bad credentials', (done) ->
             pass = badpass
-            sinon.spy ddp, 'loginWithEmail'
+            sinon.spy ddp, 'call'
             login ddp, { retry: 3 }, (e, token) ->
-               assert.throws (() -> throw e), /Bad email credentials/
-               assert.equal ddp.loginWithEmail.callCount, 3
-               ddp.loginWithEmail.restore()
+               assert.equal e, matchFailedError
+               assert.equal ddp.call.callCount, 4
+               ddp.call.restore()
                done()
 
          afterEach () ->
@@ -177,24 +242,28 @@ describe 'ddp-login', () ->
 
          it 'should retry 5 times by default and then fail with bad credentials', (done) ->
             pass = badpass
-            sinon.spy ddp, 'loginWithUsername'
+            sinon.spy ddp, 'call'
             login ddp, { method: 'username' }, (e, token) ->
-               assert.throws (() -> throw e), /Bad username credentials/
-               assert.equal ddp.loginWithUsername.callCount, 5
-               ddp.loginWithUsername.restore()
+               assert.equal e, matchFailedError
+               assert.equal ddp.call.callCount, 6
+               ddp.call.restore()
                done()
 
          it 'should retry the specified number of times and then fail with bad credentials', (done) ->
             pass = badpass
-            sinon.spy ddp, 'loginWithUsername'
+            sinon.spy ddp, 'call'
             login ddp, { method: 'username', retry: 3 }, (e, token) ->
-               assert.throws (() -> throw e), /Bad username credentials/
-               assert.equal ddp.loginWithUsername.callCount, 3
-               ddp.loginWithUsername.restore()
+               assert.equal e, matchFailedError
+               assert.equal ddp.call.callCount, 4
+               ddp.call.restore()
                done()
 
          afterEach () ->
             pass = null
+
+      after () ->
+         login.__set__
+            console: console
 
    describe 'Command line', () ->
 
@@ -281,6 +350,7 @@ describe 'ddp-login', () ->
             assert spyDDP.calledWithExactly
                host: 'localhost'
                port: 3333
+               use_ssl: false
                use_ejson: true
             done()
          login.__set__ 'process.argv', ['node', 'ddp-login', '--host', 'localhost', '--port', '3333']
@@ -404,7 +474,7 @@ describe 'ddp-login', () ->
       it 'should retry 5 times by default', (done) ->
          pass = badpass
          token = null
-         sinon.spy DDP.prototype, 'loginWithEmail'
+         sinon.spy DDP.prototype, 'call'
          login.__set__
             console:
                log: (m) ->
@@ -414,8 +484,8 @@ describe 'ddp-login', () ->
                dir: (o) ->
          login.__set__ 'process.exit', (n) ->
             assert.equal n, 1
-            assert.equal DDP.prototype.loginWithEmail.callCount, 5
-            DDP.prototype.loginWithEmail.restore()
+            assert.equal DDP.prototype.call.callCount, 6
+            DDP.prototype.call.restore()
             done()
          login.__set__ 'process.env.TEST_TOKEN', badToken
          login.__set__ 'process.argv', ['node', 'ddp-login', '--env', 'TEST_TOKEN']
@@ -424,7 +494,7 @@ describe 'ddp-login', () ->
       it 'should retry the specified number of times', (done) ->
          pass = badpass
          token = null
-         sinon.spy DDP.prototype, 'loginWithEmail'
+         sinon.spy DDP.prototype, 'call'
          login.__set__
             console:
                log: (m) ->
@@ -434,8 +504,8 @@ describe 'ddp-login', () ->
                dir: (o) ->
          login.__set__ 'process.exit', (n) ->
             assert.equal n, 1
-            assert.equal DDP.prototype.loginWithEmail.callCount, 3
-            DDP.prototype.loginWithEmail.restore()
+            assert.equal DDP.prototype.call.callCount, 4
+            DDP.prototype.call.restore()
             done()
          login.__set__ 'process.env.TEST_TOKEN', badToken
          login.__set__ 'process.argv', ['node', 'ddp-login', '--env', 'TEST_TOKEN', '--retry', '3']
