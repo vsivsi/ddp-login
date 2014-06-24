@@ -150,14 +150,13 @@ login._command_line = () ->
   yargs = require('yargs')
     .usage('''
 
-Usage: $0 [--host <hostname>] [--port <portnum>] [--env <envvar>] [--method <logintype>] [--retry <count>] [--ssl] [--plaintext]
+Usage: $0 [--host <hostname>] [--port <portnum>] [--env <envvar>] [--method <logintype>]
+          [--retry <count>] [--ssl] [--plaintext]
 
 Output: a valid authToken, if successful
 
 Note: If your Meteor server is older than v0.8.2, you will need to use the --plaintext
-option to authenticate. If it is v0.8.2 or newer, but the account was created on an
-an older server, you should re-authenticate once with a Meteor client to transition
-the account to the post v0.8.2 account format. Otherwise, you must use --plaintext.
+option to authenticate.
 ''')
     .example('', '''
 
