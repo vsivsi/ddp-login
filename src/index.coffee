@@ -48,7 +48,7 @@ login = (ddp, options..., cb) ->
 plaintextToDigest = (pass) ->
   hash = crypto.createHash 'sha256'
   hash.update pass, 'utf8'
-  return { digest: hash.digest('hex'), algorithm: 'sha-256' }
+  return hash.digest('hex')
 
 isEmail = (addr) ->
   unless typeof addr is 'string'
@@ -63,18 +63,32 @@ isEmail = (addr) ->
   m = addr.match matchEmail
   m isnt null
 
-
 attemptLogin = (ddp, user, pass, options, cb) ->
   digest = plaintextToDigest pass
-  ddp.call 'login', [{user: user, password: digest}], (err, res) ->
-    unless err and err.error is 400 and options.plaintext
+  ddp.call 'login', [{user: user, password: {digest: digest, algorithm: 'sha-256' }}], (err, res) ->
+    unless err and err.error is 400
       if err
-        console.error 'Login failed:', err.message if err
+        console.error 'Login failed:', err.message
       return cb err, res
 
-    # Fallback to plaintext login
-    ddp.call 'login', [{user: user, password: pass}], (err, res) ->
-      console.error 'Login failed: ', err.message if err
+    if err.reason is 'old password format'
+
+      # Attempt to migrate from pre v0.8.2 SRP account to bcrypt account
+      console.log 'Old Meteor SRP (pre-v0.8.2) account detected. Attempting to migrate...'
+      try
+        details = JSON.parse err.details
+      catch e
+        return cb err
+
+      srpDigest = plaintextToDigest "#{details.identity}:#{pass}"
+      ddp.call 'login', [{user: user, srp: srpDigest, password: {digest: digest, algorithm: 'sha-256'}}], cb
+
+    else if options.plaintext
+      # Fallback to plaintext login
+      ddp.call 'login', [{user: user, password: pass}], (err, res) ->
+        console.error 'Login failed: ', err.message if err
+        return cb err, res
+    else
       return cb err, res
 
 loginWithUsername = (ddp, username, password, options..., cb) ->
@@ -99,7 +113,6 @@ tryOneToken = (ddp, options, cb) ->
     return cb err, res
 
 userPrompt = (prompt, options, cb) ->
-
   readPrompts = {}
   unless options.account?
     readPrompts.account = async.apply read, {prompt: prompt, output: process.stderr}

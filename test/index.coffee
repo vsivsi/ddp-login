@@ -127,9 +127,9 @@ describe 'ddp-login', () ->
    describe 'API', () ->
 
       before () ->
-         login.__set__
-            console:
-               error: (m) ->
+         # login.__set__
+         #    console:
+         #       error: (m) ->
 
       it 'should throw when invoked without a valid callback', () ->
          assert.throws login, /Valid callback must be provided to ddp-login/

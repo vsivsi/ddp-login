@@ -4,10 +4,10 @@
   "description": "Login to a Meteor server via DDP and obtain an authentication token",
   "main": "lib/index.js",
   "dependencies": {
-    "ddp": "~0.6.0",
+    "ddp": "~0.7.0",
     "read": "~1.0.5",
     "async": "~0.9.0",
-    "yargs": "~1.2.3"
+    "yargs": "~1.2.6"
   },
   "devDependencies": {
     "coffee-script": "~1.7.1",
