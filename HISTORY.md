@@ -5,6 +5,10 @@
 * Added 'account' method that auto-chooses between email and user depending on user input
 * Added the ability to provide account and password information via the Javascript API
 
+#### v0.1.2
+* First npm release on the SRP npm tag
+* Bumped versions of npm dependencies.
+
 #### v0.1.1
 * Added 'token' method option
 * Bumped versions of npm dependencies.
