@@ -74,7 +74,7 @@ attemptLogin = (ddp, user, pass, options, cb) ->
     if err.reason is 'old password format'
 
       # Attempt to migrate from pre v0.8.2 SRP account to bcrypt account
-      console.log 'Old Meteor SRP (pre-v0.8.2) account detected. Attempting to migrate...'
+      console.error 'Old Meteor SRP (pre-v0.8.2) account detected. Attempting to migrate...'
       try
         details = JSON.parse err.details
       catch e
@@ -101,9 +101,9 @@ loginWithAccount = (ddp, account, password, options..., cb) ->
   if isEmail account
     loginWithEmail ddp, account, password, options[0], (err, tok) ->
       return cb err, tok unless err and err.error is 400
-      loginWithUsername ddp, {user: account}, password, options[0], cb
+      loginWithUsername ddp, account, password, options[0], cb
   else
-    loginWithUsername ddp, {user: account}, password, options[0], cb
+    loginWithUsername ddp, account, password, options[0], cb
 
 loginWithToken = (ddp, token, cb) ->
   ddp.call 'login', [{ resume: token }], cb

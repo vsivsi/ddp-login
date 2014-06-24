@@ -58,14 +58,22 @@ class DDP
 
             if obj.user.user? # username based
                if obj.user.user is user and
-                     obj.password is okpass or obj.password.digest is goodDigest
+                 (obj.password is okpass or obj.password.digest is goodDigest)
                   return cb null, { token: goodToken }
+               else if obj.user.user is srpUser
+                  if obj.srp? and obj.password.digest is goodDigest
+                     if obj.srp is 'c398c8dce734b1a6e7959bf90067985a1291e9f32a62edf15efb5adc760e40ce'
+                        return cb null, { token: migrationToken }
+                     else
+                        return cb matchFailedError
+                  else
+                     return cb oldPasswordFormatError
                else
                   return cb matchFailedError
 
             else if obj.user.email # email based
                if obj.user.email is email and
-                     obj.password is okpass or obj.password.digest is goodDigest
+                 (obj.password is okpass or obj.password.digest is goodDigest)
                   return cb null, { token: goodToken }
                else
                   return cb matchFailedError
@@ -78,7 +86,8 @@ login.__set__ 'read', read
 login.__set__ 'DDP', DDP
 
 goodToken = 'Ge1KTcEL8MbPc7hq_M5OkOwKHtNzbCdiDqaEoUNux22'
-badToken =  'slkf90sfj3fls9j930fjfssjf9jf3fjs_fssh82344f'
+migrationToken = 'Cn55fidCmxKykJsQd4VPUU0aHIOGom0HjdOELYkM8Vg'
+badToken = 'slkf90sfj3fls9j930fjfssjf9jf3fjs_fssh82344f'
 
 matchFailedError =
    "error":400
@@ -107,13 +116,14 @@ unrecognizedOptionsError =
 oldPasswordFormatError =
    "error":400
    "reason":"old password format"
-   "details":"{\"format\":\"srp\",\"identity\":\"h_UZJgkIqF-NYPR-NSJzHvZWH9MuHb689eLzy741nXq\"}"
+   "details":'{"format":"srp","identity":"h_UZJgkIqF-NYPR-NSJzHvZWH9MuHb689eLzy741nXq"}'
    "message":"old password format [400]"
    "errorType":"Meteor.Error"
 
-user = 'bozo'
+user = 'Bozo'
 email = 'bozo@clowns.com'
 account = null
+srpUser = 'Crusty'
 goodpass = 'secure'
 goodDigest = '6a934b45144e3758911efa29ed68fb2d420fa7bd568739cdcda9251fa9609b1e'
 okpass = 'justok'
@@ -127,9 +137,22 @@ describe 'ddp-login', () ->
    describe 'API', () ->
 
       before () ->
-         # login.__set__
-         #    console:
-         #       error: (m) ->
+         login.__set__
+            console:
+               error: (m) ->
+
+      describe 'login with SRP account migration', () ->
+
+         it 'should return a valid authToken when an account migration is successful', (done) ->
+            pass = goodpass
+            account = srpUser
+            login ddp, { method: "account" }, (e, res) ->
+               assert.ifError e
+               assert.equal res.token, migrationToken, 'Wrong token returned'
+               done()
+
+         afterEach () ->
+            pass = null
 
       it 'should throw when invoked without a valid callback', () ->
          assert.throws login, /Valid callback must be provided to ddp-login/
