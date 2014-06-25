@@ -1,6 +1,6 @@
 {
   "name": "ddp-login",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Login to a Meteor server via DDP and obtain an authentication token",
   "main": "lib/index.js",
   "dependencies": {

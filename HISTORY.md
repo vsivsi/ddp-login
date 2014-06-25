@@ -1,3 +1,6 @@
+#### v1.0.1
+* Fixed command-line tool help text
+
 #### v1.0.0
 * Major changes to the underlying authentication methods necessitated by changes in [Meteor v0.8.2](https://github.com/meteor/meteor/blob/release-0.8.2/History.md#v082)
 * Added `--ssl` option on the command line
