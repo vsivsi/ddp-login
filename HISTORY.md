@@ -1,3 +1,6 @@
+#### v1.0.2
+* Documentation improvements
+
 #### v1.0.1
 * Fixed command-line tool help text
 
