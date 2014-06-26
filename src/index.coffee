@@ -175,7 +175,7 @@ export METEOR_TOKEN=$($0 --host 127.0.0.1 --port 3000 --env METEOR_TOKEN --metho
     .describe('ssl', 'Use an SSL encrypted connection to connect with the host')
     .boolean('ssl')
     .default('ssl', false)
-    .describe('plaintext', 'For accounts created on Meteor servers older than v0.8.2, fallback to sending the password as plaintext.')
+    .describe('plaintext', 'For Meteor servers older than v0.8.2, fallback to sending the password as plaintext.')
     .default('plaintext', false)
     .boolean('plaintext')
     .boolean('h')
