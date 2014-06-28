@@ -74,7 +74,7 @@ ddpClient.connect(function (err) {
       if (error) {
         // Something went wrong...
       } else {
-        // We are now logged in, with userInfo.token as our session resume auth token.
+        // We are now logged in, with userInfo.token as our session auth token.
         token = userInfo.token;
       }
     }
