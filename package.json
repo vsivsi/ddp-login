@@ -1,6 +1,6 @@
 {
   "name": "ddp-login",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Login to a Meteor server via DDP and obtain an authentication token",
   "main": "lib/index.js",
   "dependencies": {
@@ -11,10 +11,10 @@
   },
   "devDependencies": {
     "coffee-script": "~1.7.1",
-    "mocha": "~1.20.1",
+    "mocha": "~1.21.0",
     "chai": "~1.9.1",
-    "rewire": "~2.0.1",
-    "sinon": "~1.10.2"
+    "rewire": "~2.1.0",
+    "sinon": "~1.10.3"
     },
   "scripts": {
     "prepublish": "coffee --compile --output lib/ src/",

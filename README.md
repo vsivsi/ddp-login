@@ -5,7 +5,7 @@ ddp-login is a node.js npm package providing a simple way to authenticate with a
 
 ddp-login is built on top of the [ddp](https://www.npmjs.org/package/ddp) npm package and makes it easy to prompt a user for login credentials (based on e-mail or username), authenticate a DDP connection and then securely cache the resulting authentication token in the process environment. If a valid token is already present in the environment, then there is no need to prompt the user and reauthentication occurs transparently. Alternatively, the Javascript API may provide account credentials to avoid unwanted user prompts.
 
-**NOTE:** As of Meteor v0.8.2, the Meteor account database and authentication methods have [changed significantly](https://github.com/meteor/meteor/blob/release-0.8.2/History.md#meteor-accounts). These changes have brought some potential compatibility issues:
+**NOTE:** As of Meteor v0.8.2, the Meteor account database and authentication methods have [changed significantly](https://github.com/meteor/meteor/blob/master/History.md#meteor-accounts). These changes have brought some potential compatibility issues:
 * As of ddp-login v1.0.0, authenticating with a Meteor server older than v0.8.2 requires the `plaintext` option.
 * For servers v0.8.2 or newer, accounts created on older versions of Meteor will be automatically migrated to the new "BCrypt" account type on first login (either using the Meteor Client or this package.)
 * As long as you are only using pre-v0.8.2 servers, you may want to continue to use ddp-login v0.1.x, (available from npm using `ddp-login@SRP`) which will continue to fully support the old account types and SRP based login protocol.

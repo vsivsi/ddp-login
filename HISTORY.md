@@ -1,3 +1,7 @@
+#### v1.0.3
+* Fixed broken link in README
+* Updated dev dependencies
+
 #### v1.0.2
 * Documentation improvements
 
