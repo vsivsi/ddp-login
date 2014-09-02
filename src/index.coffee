@@ -92,7 +92,7 @@ attemptLogin = (ddp, user, pass, options, cb) ->
       return cb err, res
 
 loginWithUsername = (ddp, username, password, options..., cb) ->
-   attemptLogin ddp, {user: username}, password, options[0], cb
+   attemptLogin ddp, {username: username}, password, options[0], cb
 
 loginWithEmail = (ddp, email, password, options..., cb) ->
    attemptLogin ddp, {email: email}, password, options[0], cb
