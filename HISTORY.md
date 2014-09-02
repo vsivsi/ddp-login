@@ -1,3 +1,7 @@
+#### v1.0.4
+* Fixed bug with using username to login, thanks to @gadicc for the PR!
+* Updated dependencies
+
 #### v1.0.3
 * Fixed broken link in README
 * Updated dev dependencies
