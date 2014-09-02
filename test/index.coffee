@@ -56,11 +56,11 @@ class DDP
             else unless typeof obj.password is 'string'
                return cb unrecognizedOptionsError
 
-            if obj.user.user? # username based
-               if obj.user.user is user and
+            if obj.user.username? # username based
+               if obj.user.username is user and
                  (obj.password is okpass or obj.password.digest is goodDigest)
                   return cb null, { token: goodToken }
-               else if obj.user.user is srpUser
+               else if obj.user.username is srpUser
                   if obj.srp? and obj.password.digest is goodDigest
                      if obj.srp is 'c398c8dce734b1a6e7959bf90067985a1291e9f32a62edf15efb5adc760e40ce'
                         return cb null, { token: migrationToken }
