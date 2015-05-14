@@ -150,13 +150,11 @@ login._command_line = () ->
   yargs = require('yargs')
     .usage('''
 
-Usage: $0 [--host <hostname>] [--port <portnum>] [--env <envvar>] [--method <logintype>]
-          [--retry <count>] [--ssl] [--plaintext]
+Usage: $0 [--host <hostname>] [--port <portnum>] [--env <envvar>] [--method <logintype>] [--retry <count>] [--ssl] [--plaintext]
 
 Output: a valid authToken, if successful
 
-Note: If your Meteor server is older than v0.8.2, you will need to use the --plaintext
-option to authenticate.
+Note: If your Meteor server is older than v0.8.2, you will need to use the --plaintext option to authenticate.
 ''')
     .example('', '''
 
@@ -175,12 +173,14 @@ export METEOR_TOKEN=$($0 --host 127.0.0.1 --port 3000 --env METEOR_TOKEN --metho
     .describe('ssl', 'Use an SSL encrypted connection to connect with the host')
     .boolean('ssl')
     .default('ssl', false)
-    .describe('plaintext', 'For Meteor servers older than v0.8.2, fallback to sending the password as plaintext.')
+    .describe('plaintext', 'For Meteor servers older than v0.8.2, fallback to sending the password as plaintext')
     .default('plaintext', false)
     .boolean('plaintext')
     .boolean('h')
     .alias('h','help')
-
+    .wrap(null)
+    .version((() -> require('../package').version)) 
+  
   argv = yargs.parse(process.argv)
 
   if argv.h
