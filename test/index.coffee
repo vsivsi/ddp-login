@@ -520,7 +520,7 @@ describe 'ddp-login', () ->
          login.__set__ 'process.argv', ['node', 'ddp-login', '--env', 'TEST_TOKEN']
          login._command_line()
 
-      it 'should fail logging in with bad token when method is "token"', (done) ->
+      it.only 'should fail logging in with bad token when method is "token"', (done) ->
          pass = goodpass
          login.__set__
             console:

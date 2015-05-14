@@ -1,3 +1,6 @@
+#### v1.0.6
+* Updated dependencies
+
 #### v1.0.5
 * Updated dependencies
 

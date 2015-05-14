@@ -5,12 +5,9 @@ ddp-login is a node.js npm package providing a simple way to authenticate with a
 
 ddp-login is built on top of the [ddp](https://www.npmjs.org/package/ddp) npm package and makes it easy to prompt a user for login credentials (based on e-mail or username), authenticate a DDP connection and then securely cache the resulting authentication token in the process environment. If a valid token is already present in the environment, then there is no need to prompt the user and reauthentication occurs transparently. Alternatively, the Javascript API may provide account credentials to avoid unwanted user prompts.
 
-**NOTE:** As of Meteor v0.8.2, the Meteor account database and authentication methods have [changed significantly](https://github.com/meteor/meteor/blob/master/History.md#meteor-accounts). These changes have brought some potential compatibility issues:
-* As of ddp-login v1.0.0, authenticating with a Meteor server older than v0.8.2 requires the `plaintext` option.
-* For servers v0.8.2 or newer, accounts created on older versions of Meteor will be automatically migrated to the new "BCrypt" account type on first login (either using the Meteor Client or this package.)
-* As long as you are only using pre-v0.8.2 servers, you may want to continue to use ddp-login v0.1.x, (available from npm using `ddp-login@SRP`) which will continue to fully support the old account types and SRP based login protocol.
+## Security
 
-The `plaintext` fallback is insecure on the wire (when not using SSL encryption), which is why it is not enabled by default. The new default remote login scheme for Meteor transmits the [SHA256 digest](https://en.wikipedia.org/wiki/SHA256) of the password, which is somewhat more secure for strong passwords, but which is still vulnerable to replay attacks. For these reasons, it is strongly advised that you use SSL encrypted DDP connections for all authentication requests that traverse untrusted networks.
+The current secure remote login scheme for Meteor transmits the [SHA256 digest](https://en.wikipedia.org/wiki/SHA256) of the user's password, which is somewhat more secure than plaintext for strong passwords, however this approach is still vulnerable to replay attacks. For these reasons, it is strongly advised that you use SSL encrypted DDP connections for all authentication requests that traverse untrusted networks.
 
 ## Installation
 
@@ -41,6 +38,26 @@ ddp-login currently supports the following login methods:
 Note that all login methods will try to use an existing authentication token from the environment before falling back to the provided (or default) method. The 'token' method is used when no user intervention is possible and it is assumed that a valid token is present; in this case the login will either succeed or fail, without any user promting.
 
 There are two possible ways to use this package:
+
+### From the command shell
+
+Here's how to securely set an environment variable with an authentication token that can be used by other programs to avoid a user having to repeatedly enter credentials at the shell.
+
+```bash
+# Create an environment variable containing a valid authToken,
+# prompting for account credentials only if necessary.
+export METEOR_TOKEN=$(ddp-login --host 127.0.0.1 \
+                                --port 3000 \
+                                --env METEOR_TOKEN \
+                                --method account \
+                                --retry 5)
+
+## Get command line help
+ddp-login --help
+```
+The above will only work if `ddp-login` was installed with the `npm -g` option, or if it is run directly using node.js.
+
+Note: for security reasons, there is no way to pass the account credentials on the command line, as such credentials would be visible to all users of a machine in the process status.
 
 ### In node.js
 
@@ -120,22 +137,11 @@ login.loginWithAccount(ddpClient, userOrEmail, pass, function (err, userInfo) {
 });
 ```
 
-### From the command shell
+## Note about compatibility with pre-0.8.2 versions of Meteor
 
-Here's how to securely set an environment variable with an authentication token that can be used by other programs to avoid a user having to repeatedly enter credentials at the shell.
+As of Meteor v0.8.2, the Meteor account database and authentication methods have [changed significantly](https://github.com/meteor/meteor/blob/master/History.md#meteor-accounts-3). These changes have brought some potential compatibility issues:
+* As of ddp-login v1.0.0, authenticating with a Meteor server older than v0.8.2 requires the `plaintext` option.
+* For servers v0.8.2 or newer, accounts created on older versions of Meteor will be automatically migrated to the new "BCrypt" account type on first login (either using the Meteor Client or this package.)
+* As long as you are only using pre-v0.8.2 servers, you may want to continue to use ddp-login v0.1.x, (available from npm using `ddp-login@SRP`) which will continue to fully support the old account types and SRP based login protocol.
 
-```bash
-# Create an environment variable containing a valid authToken,
-# prompting for account credentials only if necessary.
-export METEOR_TOKEN=$(ddp-login --host 127.0.0.1 \
-                                --port 3000 \
-                                --env METEOR_TOKEN \
-                                --method account \
-                                --retry 5)
-
-## Get command line help
-ddp-login --help
-```
-The above will only work if `ddp-login` was installed with the `npm -g` option, or if it is run directly using node.js.
-
-Note: for security reasons, there is no way to pass the account credentials on the command line, as such credentials would be visible to all users of a machine in the process status.
+The `plaintext` fallback is insecure on the wire (when not using SSL encryption), which is why it is not enabled by default. 
