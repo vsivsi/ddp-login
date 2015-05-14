@@ -1,3 +1,9 @@
+############################################################################
+#     Copyright (C) 2014-2015 by Vaughn Iverson
+#     ddp-login is free software released under the MIT/X11 license.
+#     See included LICENSE file for details.
+############################################################################
+
 # Unit tests
 
 assert = require('chai').assert
@@ -345,10 +351,13 @@ describe 'ddp-login', () ->
                log: (m) ->
                   token = m
                warn: console.warn
-         login.__set__ 'process.exit', (n) ->
-            assert.equal n, 0
-            assert.equal token, goodToken
-            done()
+            process:
+               env: {}
+               argv: []
+               exit: (n) ->
+                  assert.equal n, 0
+                  assert.equal token, goodToken
+                  done()
          login._command_line()
 
       it 'should support logging in with all default parameters with email', (done) ->
@@ -360,10 +369,13 @@ describe 'ddp-login', () ->
                log: (m) ->
                   token = m
                warn: console.warn
-         login.__set__ 'process.exit', (n) ->
-            assert.equal n, 0
-            assert.equal token, goodToken
-            done()
+            process:
+               env: {}
+               argv: []
+               exit: (n) ->
+                  assert.equal n, 0
+                  assert.equal token, goodToken
+                  done()
          login._command_line()
 
       it 'should fail logging in with bad credentials', (done) ->
@@ -377,9 +389,12 @@ describe 'ddp-login', () ->
                error: (m) ->
                warn: console.warn
                dir: (o) ->
-         login.__set__ 'process.exit', (n) ->
-            assert.equal n, 1
-            done()
+            process:
+               env: {}
+               argv: []
+               exit: (n) ->
+                  assert.equal n, 1
+                  done()
          login._command_line()
 
       it 'should support logging in with username', (done) ->
@@ -390,11 +405,13 @@ describe 'ddp-login', () ->
                log: (m) ->
                   token = m
                warn: console.warn
-         login.__set__ 'process.exit', (n) ->
-            assert.equal n, 0
-            assert.equal token, goodToken
-            done()
-         login.__set__ 'process.argv', ['node', 'ddp-login', '--method', 'username']
+            process:
+               env: {}
+               argv: ['node', 'ddp-login', '--method', 'username']
+               exit: (n) ->
+                  assert.equal n, 0
+                  assert.equal token, goodToken
+                  done()
          login._command_line()
 
       it 'should fail logging in with bad username credentials', (done) ->
@@ -407,10 +424,12 @@ describe 'ddp-login', () ->
                error: (m) ->
                warn: console.warn
                dir: (o) ->
-         login.__set__ 'process.exit', (n) ->
-            assert.equal n, 1
-            done()
-         login.__set__ 'process.argv', ['node', 'ddp-login', '--method', 'username']
+            process:
+               env: {}
+               argv: ['node', 'ddp-login', '--method', 'username']
+               exit: (n) ->
+                  assert.equal n, 1
+                  done()
          login._command_line()
 
       it 'should properly pass host and port to DDP', (done) ->
@@ -424,16 +443,18 @@ describe 'ddp-login', () ->
                log: (m) ->
                   token = m
                warn: console.warn
-         login.__set__ 'process.exit', (n) ->
-            assert.equal n, 0
-            assert.equal token, goodToken
-            assert spyDDP.calledWithExactly
-               host: 'localhost'
-               port: 3333
-               use_ssl: false
-               use_ejson: true
-            done()
-         login.__set__ 'process.argv', ['node', 'ddp-login', '--host', 'localhost', '--port', '3333']
+            process:
+               env: {}
+               argv: ['node', 'ddp-login', '--host', 'localhost', '--port', '3333']
+               exit: (n) ->
+                  assert.equal n, 0
+                  assert.equal token, goodToken
+                  assert spyDDP.calledWithExactly
+                     host: 'localhost'
+                     port: 3333
+                     use_ssl: false
+                     use_ejson: true
+                  done()
          login._command_line()
 
       it 'should succeed when a good token is in the default env var', (done) ->
@@ -445,11 +466,14 @@ describe 'ddp-login', () ->
                log: (m) ->
                   token = m
                warn: console.warn
-         login.__set__ 'process.exit', (n) ->
-            assert.equal n, 0, 'wrong return code'
-            assert.equal token, goodToken, 'Bad token'
-            done()
-         login.__set__ 'process.env.METEOR_TOKEN', goodToken
+            process:
+               env:
+                  METEOR_TOKEN: goodToken
+               argv: []
+               exit: (n) ->
+                  assert.equal n, 0, 'wrong return code'
+                  assert.equal token, goodToken, 'Bad token'
+                  done()
          login._command_line()
 
       it 'should succeed when a good token is in the default env var and method is "token"', (done) ->
@@ -461,12 +485,14 @@ describe 'ddp-login', () ->
                log: (m) ->
                   token = m
                warn: console.warn
-         login.__set__ 'process.exit', (n) ->
-            assert.equal n, 0, 'wrong return code'
-            assert.equal token, goodToken, 'Bad token'
-            done()
-         login.__set__ 'process.env.METEOR_TOKEN', goodToken
-         login.__set__ 'process.argv', ['node', 'ddp-login', '--method', 'token']
+            process:
+               env:
+                  METEOR_TOKEN: goodToken
+               argv: ['node', 'ddp-login', '--method', 'token']
+               exit: (n) ->
+                  assert.equal n, 0, 'wrong return code'
+                  assert.equal token, goodToken, 'Bad token'
+                  done()
          login._command_line()
 
       it 'should succeed when a good token is in a specified env var', (done) ->
@@ -478,12 +504,14 @@ describe 'ddp-login', () ->
                log: (m) ->
                   token = m
                warn: console.warn
-         login.__set__ 'process.exit', (n) ->
-            assert.equal n, 0, 'wrong return code'
-            assert.equal token, goodToken, 'Bad token'
-            done()
-         login.__set__ 'process.env.TEST_TOKEN', goodToken
-         login.__set__ 'process.argv', ['node', 'ddp-login', '--env', 'TEST_TOKEN']
+            process:
+               env:
+                  TEST_TOKEN: goodToken
+               argv: ['node', 'ddp-login', '--env', 'TEST_TOKEN']
+               exit: (n) ->
+                  assert.equal n, 0, 'wrong return code'
+                  assert.equal token, goodToken, 'Bad token'
+                  done()
          login._command_line()
 
       it 'should succeed when a good token is in a specified env var and method is "token"', (done) ->
@@ -495,12 +523,14 @@ describe 'ddp-login', () ->
                log: (m) ->
                   token = m
                warn: console.warn
-         login.__set__ 'process.exit', (n) ->
-            assert.equal n, 0, 'wrong return code'
-            assert.equal token, goodToken, 'Bad token'
-            done()
-         login.__set__ 'process.env.TEST_TOKEN', goodToken
-         login.__set__ 'process.argv', ['node', 'ddp-login', '--env', 'TEST_TOKEN', '--method', 'token']
+            process:
+               env:
+                  TEST_TOKEN: goodToken
+               argv: ['node', 'ddp-login', '--env', 'TEST_TOKEN', '--method', 'token']
+               exit: (n) ->
+                  assert.equal n, 0, 'wrong return code'
+                  assert.equal token, goodToken, 'Bad token'
+                  done()
          login._command_line()
 
       it 'should succeed when a bad token is in a specified env var', (done) ->
@@ -512,15 +542,17 @@ describe 'ddp-login', () ->
                log: (m) ->
                   token = m
                warn: console.warn
-         login.__set__ 'process.exit', (n) ->
-            assert.equal n, 0, 'wrong return code'
-            assert.equal token, goodToken, 'Bad token'
-            done()
-         login.__set__ 'process.env.TEST_TOKEN', badToken
-         login.__set__ 'process.argv', ['node', 'ddp-login', '--env', 'TEST_TOKEN']
+            process:
+               env:
+                  TEST_TOKEN: badToken
+               argv: ['node', 'ddp-login', '--env', 'TEST_TOKEN']
+               exit: (n) ->
+                  assert.equal n, 0, 'wrong return code'
+                  assert.equal token, goodToken, 'Bad token'
+                  done()
          login._command_line()
 
-      it.only 'should fail logging in with bad token when method is "token"', (done) ->
+      it 'should fail logging in with bad token when method is "token"', (done) ->
          pass = goodpass
          login.__set__
             console:
@@ -529,11 +561,13 @@ describe 'ddp-login', () ->
                error: (m) ->
                warn: console.warn
                dir: (o) ->
-         login.__set__ 'process.exit', (n) ->
-            assert.equal n, 1
-            done()
-         login.__set__ 'process.env.METEOR_TOKEN', badToken
-         login.__set__ 'process.argv', ['node', 'ddp-login', '--method', 'token']
+            process:
+               env:
+                  METEOR_TOKEN: badToken
+               argv: ['node', 'ddp-login', '--method', 'token']
+               exit: (n) ->
+                  assert.equal n, 1
+                  done()
          login._command_line()
 
       it 'should fail logging in with bad token in specified env var when method is "token"', (done) ->
@@ -545,11 +579,13 @@ describe 'ddp-login', () ->
                error: (m) ->
                warn: console.warn
                dir: (o) ->
-         login.__set__ 'process.exit', (n) ->
-            assert.equal n, 1
-            done()
-         login.__set__ 'process.env.TEST_TOKEN', badToken
-         login.__set__ 'process.argv', ['node', 'ddp-login', '--env', 'TEST_TOKEN', '--method', 'token']
+            process:
+               env:
+                  TEST_TOKEN: badToken
+               argv: ['node', 'ddp-login', '--env', 'TEST_TOKEN', '--method', 'token']
+               exit: (n) ->
+                  assert.equal n, 1
+                  done()
          login._command_line()
 
       it 'should retry 5 times by default', (done) ->
@@ -563,13 +599,15 @@ describe 'ddp-login', () ->
                error: (m) ->
                warn: console.warn
                dir: (o) ->
-         login.__set__ 'process.exit', (n) ->
-            assert.equal n, 1
-            assert.equal DDP.prototype.call.callCount, 6
-            DDP.prototype.call.restore()
-            done()
-         login.__set__ 'process.env.TEST_TOKEN', badToken
-         login.__set__ 'process.argv', ['node', 'ddp-login', '--env', 'TEST_TOKEN']
+            process:
+               env:
+                  TEST_TOKEN: badToken
+               argv: ['node', 'ddp-login', '--env', 'TEST_TOKEN']
+               exit: (n) ->
+                  assert.equal n, 1
+                  assert.equal DDP.prototype.call.callCount, 6
+                  DDP.prototype.call.restore()
+                  done()
          login._command_line()
 
       it 'should retry the specified number of times', (done) ->
@@ -583,13 +621,15 @@ describe 'ddp-login', () ->
                error: (m) ->
                warn: console.warn
                dir: (o) ->
-         login.__set__ 'process.exit', (n) ->
-            assert.equal n, 1
-            assert.equal DDP.prototype.call.callCount, 4
-            DDP.prototype.call.restore()
-            done()
-         login.__set__ 'process.env.TEST_TOKEN', badToken
-         login.__set__ 'process.argv', ['node', 'ddp-login', '--env', 'TEST_TOKEN', '--retry', '3']
+            process:
+               env:
+                  TEST_TOKEN: badToken
+               argv: ['node', 'ddp-login', '--env', 'TEST_TOKEN', '--retry', '3']
+               exit: (n) ->
+                  assert.equal n, 1
+                  assert.equal DDP.prototype.call.callCount, 4
+                  DDP.prototype.call.restore()
+                  done()
          login._command_line()
 
       afterEach () ->
