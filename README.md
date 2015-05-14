@@ -1,7 +1,7 @@
 ddp-login
 ====================================
 
-ddp-login is a node.js npm package providing a simple way to authenticate with a [Meteor](https://www.meteor.com/) server programmatically (as opposed to from within a browser) using the [DDP protocol](https://github.com/meteor/meteor/blob/master/packages/livedata/DDP.md). It provides both a Javascript API and a command-line tool that can be used from within your favorite shell.
+ddp-login is a node.js npm package providing a simple way to authenticate with a [Meteor](https://www.meteor.com/) server programmatically (as opposed to from within a browser) using the [DDP protocol](https://github.com/meteor/meteor/blob/devel/packages/ddp/DDP.md). It provides both a Javascript API and a command-line tool that can be used from within your favorite shell.
 
 ddp-login is built on top of the [ddp](https://www.npmjs.org/package/ddp) npm package and makes it easy to prompt a user for login credentials (based on e-mail or username), authenticate a DDP connection and then securely cache the resulting authentication token in the process environment. If a valid token is already present in the environment, then there is no need to prompt the user and reauthentication occurs transparently. Alternatively, the Javascript API may provide account credentials to avoid unwanted user prompts.
 
@@ -21,10 +21,11 @@ npm -g install ddp-login
 # From within a node_modules/ddp-test directory, unit tests may be run
 npm test
 
-# To install ddp-login for the old SRP style authentication:
+# To install ddp-login for the old pre-0.8.2 Meteor SRP style authentication:
 npm install ddp-login@SRP
 # or
 npm -g install ddp-login@SRP
+# See note at end of this README for more info!
 ```
 
 ## Usage
@@ -52,7 +53,7 @@ export METEOR_TOKEN=$(ddp-login --host 127.0.0.1 \
                                 --method account \
                                 --retry 5)
 
-## Get command line help
+## Get full command line help for all options:
 ddp-login --help
 ```
 The above will only work if `ddp-login` was installed with the `npm -g` option, or if it is run directly using node.js.
