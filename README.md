@@ -1,6 +1,8 @@
 ddp-login
 ====================================
 
+[![Build Status](https://travis-ci.org/vsivsi/ddp-login.svg)](https://travis-ci.org/vsivsi/ddp-login)
+
 ddp-login is a node.js npm package providing a simple way to authenticate with a [Meteor](https://www.meteor.com/) server programmatically (as opposed to from within a browser) using the [DDP protocol](https://github.com/meteor/meteor/blob/devel/packages/ddp/DDP.md). It provides both a Javascript API and a command-line tool that can be used from within your favorite shell.
 
 ddp-login is built on top of the [ddp](https://www.npmjs.org/package/ddp) npm package and makes it easy to prompt a user for login credentials (based on e-mail or username), authenticate a DDP connection and then securely cache the resulting authentication token in the process environment. If a valid token is already present in the environment, then there is no need to prompt the user and reauthentication occurs transparently. Alternatively, the Javascript API may provide account credentials to avoid unwanted user prompts.
@@ -145,4 +147,4 @@ As of Meteor v0.8.2, the Meteor account database and authentication methods have
 * For servers v0.8.2 or newer, accounts created on older versions of Meteor will be automatically migrated to the new "BCrypt" account type on first login (either using the Meteor Client or this package.)
 * As long as you are only using pre-v0.8.2 servers, you may want to continue to use ddp-login v0.1.x, (available from npm using `ddp-login@SRP`) which will continue to fully support the old account types and SRP based login protocol.
 
-The `plaintext` fallback is insecure on the wire (when not using SSL encryption), which is why it is not enabled by default. 
+The `plaintext` fallback is insecure on the wire (when not using SSL encryption), which is why it is not enabled by default.
