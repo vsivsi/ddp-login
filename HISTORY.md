@@ -1,3 +1,11 @@
+#### v1.0.8
+* Added travis build checking
+* Updated dependencies
+
+#### v1.0.7
+* Fixed wrapping issues with --help.
+* Added --version option
+
 #### v1.0.6
 * Updated dependencies
 
