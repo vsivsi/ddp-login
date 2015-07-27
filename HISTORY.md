@@ -1,3 +1,6 @@
+#### v1.0.9
+* Fixes issue with default --retry on command line.
+
 #### v1.0.8
 * Added travis build checking
 * Updated dependencies

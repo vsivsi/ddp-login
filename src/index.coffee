@@ -168,7 +168,7 @@ export METEOR_TOKEN=$($0 --host 127.0.0.1 --port 3000 --env METEOR_TOKEN --metho
     .describe('env', 'The environment variable to check for a valid token')
     .default('method', 'account')
     .describe('method', 'The login method: currently "email", "username", "account" or "token"')
-    .default('retry', '5')
+    .default('retry', 5)
     .describe('retry', 'Number of times to retry login before giving up')
     .describe('ssl', 'Use an SSL encrypted connection to connect with the host')
     .boolean('ssl')
@@ -179,8 +179,8 @@ export METEOR_TOKEN=$($0 --host 127.0.0.1 --port 3000 --env METEOR_TOKEN --metho
     .boolean('h')
     .alias('h','help')
     .wrap(null)
-    .version((() -> require('../package').version)) 
-  
+    .version((() -> require('../package').version))
+
   argv = yargs.parse(process.argv)
 
   if argv.h
