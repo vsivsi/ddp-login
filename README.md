@@ -38,7 +38,7 @@ ddp-login currently supports the following login methods:
 * `'account'` -- email or username + password. This method tries the `'email'` method first when the provided account looks like an email address. If that fails, or if the account doesn't look like an email address, then the `'username'` method is tried
 * `'token'` -- authentication token from previous successful login
 
-Note that all login methods will try to use an existing authentication token from the environment before falling back to the provided (or default) method. The 'token' method is used when no user intervention is possible and it is assumed that a valid token is present; in this case the login will either succeed or fail, without any user promting.
+Note that all login methods will try to use an existing authentication token from the environment before falling back to the provided (or default) method. The 'token' method is used when no user intervention is possible and it is assumed that a valid token is present; in this case the login will either succeed or fail, without any user prompting.
 
 There are two possible ways to use this package:
 
