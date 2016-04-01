@@ -1,3 +1,6 @@
+#### v1.0.10
+* Updated dependencies
+
 #### v1.0.9
 * Fixes issue with default --retry on command line.
 
