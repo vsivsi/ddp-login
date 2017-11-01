@@ -14,6 +14,8 @@ If there is enough community interest, I will probably migrate all of my Meteor 
 
 **Why? Simple: I'm no longer actively developing or maintaining any Meteor based applications (and have no forseeable plans to do so). Having moved on, the effort to keep up with changes in the Meteor/Atmosphere ecosystem no longer has any payoff for me personally.**
 
+## Intro
+
 ddp-login is a node.js npm package providing a simple way to authenticate with a [Meteor](https://www.meteor.com/) server programmatically (as opposed to from within a browser) using the [DDP protocol](https://github.com/meteor/meteor/blob/devel/packages/ddp/DDP.md). It provides both a Javascript API and a command-line tool that can be used from within your favorite shell.
 
 ddp-login is built on top of the [ddp](https://www.npmjs.org/package/ddp) npm package and makes it easy to prompt a user for login credentials (based on e-mail or username), authenticate a DDP connection and then securely cache the resulting authentication token in the process environment. If a valid token is already present in the environment, then there is no need to prompt the user and reauthentication occurs transparently. Alternatively, the Javascript API may provide account credentials to avoid unwanted user prompts.
